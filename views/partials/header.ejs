@@ -1,0 +1,37 @@
+<% const co = s.company; const wa = waLink(co.whatsapp, co.whatsappMessage); const base = locals.base || ''; %>
+<% if (co.demoMode) { %>
+<div class="demo-bar" role="note">نسخة تجريبية: اسم الشركة وبيانات التواصل والصور توضيحية، وتُستبدل من لوحة التحكم.</div>
+<% } %>
+<a class="skip" href="#main">تخطَّ إلى المحتوى</a>
+<header class="site-header" data-header>
+  <div class="wrap header-in">
+    <a class="brand" href="<%= base || '/' %>#top" aria-label="<%= co.name %> — الرئيسية">
+      <% if (co.logoImage) { %>
+        <img src="<%= co.logoImage %>-sm.webp" alt="<%= co.name %>" class="brand-logo" width="160" height="44">
+      <% } else { %>
+        <span class="brand-mark" aria-hidden="true"><i></i></span>
+        <span class="brand-text"><strong><%= co.shortName || co.name %></strong><small><%= co.tagline %></small></span>
+      <% } %>
+    </a>
+    <nav class="nav" id="site-nav" aria-label="القائمة الرئيسية" data-nav>
+      <ul>
+        <li><a href="<%= base %>#services">الخدمات</a></li>
+        <li><a href="<%= base %>#projects">المشاريع</a></li>
+        <li><a href="<%= base %>#process">طريقة العمل</a></li>
+        <li><a href="<%= base %>#faq">الأسئلة الشائعة</a></li>
+        <li><a href="<%= base %>#request">تواصل معنا</a></li>
+      </ul>
+      <div class="nav-actions-mobile">
+        <a class="btn btn-primary btn-block" href="<%= base %>#request" data-cta="nav_mobile">اطلب معاينة</a>
+        <a class="btn btn-wa btn-block" href="<%= wa %>" target="_blank" rel="noopener" data-wa="nav_mobile"><%- icon('whatsapp') %> واتساب</a>
+      </div>
+    </nav>
+    <div class="header-actions">
+      <a class="icon-btn wa-icon" href="<%= wa %>" target="_blank" rel="noopener" data-wa="header" aria-label="تواصل عبر واتساب"><%- icon('whatsapp') %></a>
+      <a class="btn btn-primary btn-sm" href="<%= base %>#request" data-cta="header">اطلب معاينة</a>
+      <button class="icon-btn menu-btn" type="button" aria-expanded="false" aria-controls="site-nav" data-menu aria-label="فتح القائمة">
+        <span class="i-open"><%- icon('menu') %></span><span class="i-close"><%- icon('close') %></span>
+      </button>
+    </div>
+  </div>
+</header>
