@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" role="img" aria-label="شعار إتقان">
+  <rect width="40" height="40" rx="6" fill="#1B1C1E"/>
+  <path d="M10 9v21h21" fill="none" stroke="#D0A764" stroke-width="2.6" stroke-linecap="square"/>
+  <path d="M16 9h15v15" fill="none" stroke="#D0A764" stroke-width="1.4" stroke-opacity=".55"/>
+  <rect x="16" y="15" width="9" height="9" fill="#D0A764"/>
+</svg>
