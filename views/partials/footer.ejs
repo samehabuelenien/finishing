@@ -1,0 +1,43 @@
+<% const co = s.company; const wa = waLink(co.whatsapp, co.whatsappMessage); const base = locals.base || '';
+   const socialNames = { instagram: 'إنستغرام', tiktok: 'تيك توك', snapchat: 'سناب شات', x: 'إكس', facebook: 'فيسبوك', youtube: 'يوتيوب', linkedin: 'لينكدإن' };
+   const socials = Object.entries(co.socials || {}).filter(([, v]) => v); %>
+<footer class="site-footer">
+  <div class="wrap footer-grid">
+    <div class="f-brand">
+      <a class="brand brand-light" href="<%= base || '/' %>#top">
+        <span class="brand-mark" aria-hidden="true"><i></i></span>
+        <span class="brand-text"><strong><%= co.name %></strong><small><%= co.tagline %></small></span>
+      </a>
+      <% if (co.serviceArea) { %><p class="f-note">نخدم: <%= co.serviceArea %></p><% } %>
+      <% if (socials.length) { %>
+      <ul class="socials" aria-label="حساباتنا على وسائل التواصل">
+        <% socials.forEach(([k, v]) => { %><li><a href="<%= v %>" target="_blank" rel="noopener" aria-label="<%= socialNames[k] %>"><%- icon(k) %></a></li><% }) %>
+      </ul>
+      <% } %>
+    </div>
+    <nav aria-label="روابط الموقع">
+      <h2 class="f-h">الموقع</h2>
+      <ul class="f-links">
+        <li><a href="<%= base %>#services">الخدمات</a></li>
+        <li><a href="<%= base %>#projects">المشاريع</a></li>
+        <li><a href="<%= base %>#process">طريقة العمل</a></li>
+        <li><a href="<%= base %>#faq">الأسئلة الشائعة</a></li>
+        <li><a href="/privacy">سياسة الخصوصية</a></li>
+      </ul>
+    </nav>
+    <div>
+      <h2 class="f-h">التواصل</h2>
+      <ul class="f-contact">
+        <% if (co.whatsapp) { %><li><%- icon('whatsapp') %><a href="<%= wa %>" target="_blank" rel="noopener" data-wa="footer">واتساب</a></li><% } %>
+        <% if (co.phone) { %><li><%- icon('phone') %><a href="tel:<%= co.phone.replace(/[^\d+]/g, '') %>" data-call="footer" dir="ltr"><%= co.phone %></a></li><% } %>
+        <% if (co.email) { %><li><%- icon('mail') %><a href="mailto:<%= co.email %>"><%= co.email %></a></li><% } %>
+        <% if (co.address) { %><li><%- icon('pin') %><span><%= co.address %></span></li><% } %>
+        <% if (co.workingHours) { %><li><%- icon('clock') %><span><%= co.workingHours %></span></li><% } %>
+      </ul>
+    </div>
+  </div>
+  <div class="wrap f-bottom">
+    <p>© <%= year %> <%= co.name %>. جميع الحقوق محفوظة.</p>
+    <a href="/privacy">سياسة الخصوصية</a>
+  </div>
+</footer>

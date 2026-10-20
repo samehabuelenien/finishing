@@ -1,0 +1,388 @@
+<%
+  const co = s.company, h = s.hero, sec = s.sections, fm = s.form;
+  const wa = waLink(co.whatsapp, co.whatsappMessage);
+  const serviceWa = (t) => waLink(co.whatsapp, `مرحبًا، أرغب في طلب معاينة لخدمة: ${t}`);
+  const jsonld = [{
+    '@context': 'https://schema.org', '@type': 'HomeAndConstructionBusiness', name: co.name, description: s.seo.description,
+    url: url + '/', telephone: co.phone || undefined, email: co.email || undefined,
+    image: s.seo.ogImage ? (s.seo.ogImage.startsWith('http') ? s.seo.ogImage : url + s.seo.ogImage) : undefined,
+    areaServed: co.serviceArea || undefined, address: co.address || undefined,
+    sameAs: Object.values(co.socials || {}).filter(Boolean),
+    hasOfferCatalog: { '@type': 'OfferCatalog', name: 'خدمات التشطيب والديكور', itemListElement: c.services.map((x) => ({ '@type': 'Offer', itemOffered: { '@type': 'Service', name: x.title, description: x.description } })) },
+  }];
+  if (c.faqs.length) jsonld.push({ '@context': 'https://schema.org', '@type': 'FAQPage',
+    mainEntity: c.faqs.map((f) => ({ '@type': 'Question', name: f.question, acceptedAnswer: { '@type': 'Answer', text: f.answer } })) });
+  const ld = jsonld.map((o) => `<script type="application/ld+json">${JSON.stringify(o).replace(/</g, '\\u003c')}</script>`).join('');
+  const projectsJson = JSON.stringify(c.projects.map((p) => ({ id: p.id, title: p.title, category: p.category, location: p.location, area: p.area,
+    description: p.description, before: p.before_image, after: p.after_image, cover: p.cover_image, demo: !!p.is_demo, images: p.images }))).replace(/</g, '\\u003c');
+%>
+<%- include('partials/head', { s, url, nonce, path: '/', jsonld: ld, preloadHero: h.image }) %>
+<body id="top">
+<%- include('partials/header', { s }) %>
+
+<main id="main">
+  <!-- ===== Hero ===== -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <h1 id="hero-title"><%= h.title %></h1>
+        <p class="lead"><%= h.subtitle %></p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary btn-lg" href="#request" data-cta="hero"><%= h.primaryCta %></a>
+          <a class="btn btn-ghost-light btn-lg" href="<%= wa %>" target="_blank" rel="noopener" data-wa="hero"><%- icon('whatsapp') %> <%= h.secondaryCta %></a>
+        </div>
+        <% if (s.trust.items && s.trust.items.length) { %>
+        <ul class="hero-trust">
+          <% s.trust.items.slice(0, 4).forEach((t) => { %><li><%- icon('check') %><%= t %></li><% }) %>
+        </ul>
+        <% } %>
+      </div>
+      <% if (h.image) { %>
+      <figure class="hero-figure">
+        <div class="dim dim-h" aria-hidden="true"><span><%= h.dimensionLabel %></span></div>
+        <div class="dim dim-v" aria-hidden="true"></div>
+        <div class="hero-frame">
+          <%- img(h.image, h.imageAlt || co.name, { sizes: '(min-width: 960px) 50vw, 100vw', eager: true }) %>
+        </div>
+        <% if (co.demoMode) { %><figcaption class="demo-cap">صورة توضيحية</figcaption><% } %>
+      </figure>
+      <% } %>
+    </div>
+  </section>
+
+  <!-- ===== الخدمات ===== -->
+  <% if (c.services.length) { %>
+  <section class="section services" id="services" aria-labelledby="services-title">
+    <div class="wrap">
+      <header class="sec-head">
+        <h2 id="services-title"><%= sec.servicesTitle %></h2>
+        <p><%= sec.servicesSubtitle %></p>
+      </header>
+      <div class="svc-layout">
+        <ul class="svc-list" data-svc-list>
+          <% c.services.forEach((sv, i) => { %>
+          <li class="svc-row<%= i === 0 ? ' is-active' : '' %>" data-svc data-img="<%= sv.image || '' %>" data-alt="<%= sv.title %>">
+            <% if (sv.image) { %><div class="svc-thumb"><%- img(sv.image, sv.title, { sizes: '96px' }) %></div><% } %>
+            <div class="svc-body">
+              <h3><%= sv.title %></h3>
+              <p><%= sv.description %></p>
+              <div class="svc-links">
+                <a href="#request" data-service="<%= sv.title %>" data-cta="service">اطلب معاينة لهذه الخدمة</a>
+                <a href="<%= serviceWa(sv.title) %>" target="_blank" rel="noopener" data-wa="service" class="svc-wa"><%- icon('whatsapp') %> اسأل عبر واتساب</a>
+              </div>
+            </div>
+          </li>
+          <% }) %>
+        </ul>
+        <div class="svc-preview" aria-hidden="true">
+          <div class="svc-preview-frame">
+            <%- img(c.services.find((x) => x.image)?.image, '', { sizes: '40vw', cls: 'svc-preview-img' }) %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <% } %>
+
+  <!-- ===== المشاريع ===== -->
+  <% if (c.projects.length) { %>
+  <section class="section projects" id="projects" aria-labelledby="projects-title">
+    <div class="wrap">
+      <header class="sec-head">
+        <h2 id="projects-title"><%= sec.projectsTitle %></h2>
+        <p><%= sec.projectsSubtitle %></p>
+        <% if (c.projects.some((p) => p.is_demo)) { %><p class="note-demo">المشاريع المعروضة حاليًا رسوم توضيحية تجريبية وليست أعمالًا فعلية للشركة.</p><% } %>
+      </header>
+      <% if (c.categories.length > 1) { %>
+      <div class="filters" role="group" aria-label="تصفية المشاريع حسب النوع" data-filters>
+        <button type="button" class="chip is-on" data-filter="all" aria-pressed="true">الكل</button>
+        <% c.categories.forEach((cat) => { %><button type="button" class="chip" data-filter="<%= cat.id %>" aria-pressed="false"><%= cat.name %></button><% }) %>
+      </div>
+      <% } %>
+      <ul class="proj-grid" data-proj-grid>
+        <% const nP = c.projects.length, wides = nP > 2 ? (3 - nP % 3) % 3 : 0;
+           const isWide = (i) => (wides >= 1 && i === 0) || (wides === 2 && i === 3); %>
+        <% c.projects.forEach((p, i) => { %>
+        <li class="proj<%= isWide(i) ? ' proj-wide' : '' %>" data-cat="<%= p.category_id || '' %>">
+          <button type="button" class="proj-btn" data-project="<%= p.id %>" aria-haspopup="dialog">
+            <span class="proj-img"><%- img(p.cover_image || p.after_image, p.title, { sizes: '(min-width: 960px) 33vw, (min-width: 600px) 50vw, 100vw' }) %></span>
+            <span class="proj-meta">
+              <span class="proj-title"><%= p.title %></span>
+              <span class="proj-cat"><%= p.category || '' %></span><% if (p.before_image && p.after_image) { %><span class="proj-ba">قبل وبعد</span><% } %>
+            </span>
+            <% if (p.is_demo) { %><span class="tag-demo">توضيحي</span><% } %>
+          </button>
+        </li>
+        <% }) %>
+      </ul>
+    </div>
+  </section>
+  <% } %>
+
+  <!-- ===== لماذا نحن ===== -->
+  <% if (c.features.length) { %>
+  <section class="section why" aria-labelledby="why-title">
+    <div class="wrap why-grid">
+      <header class="sec-head why-head">
+        <h2 id="why-title"><%= sec.featuresTitle %></h2>
+        <p><%= sec.featuresSubtitle %></p>
+        <a class="btn btn-dark" href="#request" data-cta="why">اطلب معاينة</a>
+      </header>
+      <ul class="why-list">
+        <% c.features.forEach((f) => { %><li><h3><%= f.title %></h3><p><%= f.description %></p></li><% }) %>
+      </ul>
+    </div>
+  </section>
+  <% } %>
+
+  <!-- ===== مراحل العمل ===== -->
+  <% if (c.steps.length) { %>
+  <section class="section steps" id="process" aria-labelledby="steps-title">
+    <div class="wrap">
+      <header class="sec-head sec-head-light">
+        <h2 id="steps-title"><%= sec.stepsTitle %></h2>
+        <p><%= sec.stepsSubtitle %></p>
+      </header>
+      <ol class="steps-list">
+        <% c.steps.forEach((st, i) => { %>
+        <li><span class="step-n" aria-hidden="true"><%= String(i + 1).padStart(2, '0') %></span><h3><%= st.title %></h3><p><%= st.description %></p></li>
+        <% }) %>
+      </ol>
+    </div>
+  </section>
+  <% } %>
+
+  <!-- ===== آراء العملاء ===== -->
+  <section class="section reviews" id="reviews" aria-labelledby="reviews-title">
+    <div class="wrap">
+      <header class="sec-head sec-head-row">
+        <h2 id="reviews-title"><%= sec.testimonialsTitle %></h2>
+        <button type="button" class="btn btn-outline" data-open-review>شاركنا رأيك</button>
+      </header>
+      <% if (c.testimonials.length) { %>
+      <ul class="review-list">
+        <% c.testimonials.forEach((t) => { %>
+        <li>
+          <figure>
+            <% if (t.rating) { %><div class="stars" aria-label="التقييم <%= t.rating %> من 5"><% for (let k = 1; k <= 5; k++) { %><span class="<%= k <= t.rating ? 'on' : '' %>"><%- icon('star') %></span><% } %></div><% } %>
+            <blockquote><p><%= t.text %></p></blockquote>
+            <figcaption><strong><%= t.name %></strong><% if (t.city || t.service) { %><span><%= [t.service, t.city].filter(Boolean).join(' — ') %></span><% } %></figcaption>
+          </figure>
+        </li>
+        <% }) %>
+      </ul>
+      <% } else { %>
+      <div class="empty-reviews">
+        <p>ننشر آراء عملائنا بعد تسليم المشاريع وبموافقتهم. إذا تعاملت معنا من قبل، يسعدنا أن تشاركنا تجربتك.</p>
+      </div>
+      <% } %>
+    </div>
+  </section>
+
+  <!-- ===== الأسئلة الشائعة ===== -->
+  <% if (c.faqs.length) { %>
+  <section class="section faq" id="faq" aria-labelledby="faq-title">
+    <div class="wrap faq-grid">
+      <header class="sec-head">
+        <h2 id="faq-title"><%= sec.faqTitle %></h2>
+        <p>لم تجد إجابتك؟ <a href="<%= wa %>" target="_blank" rel="noopener" data-wa="faq">اسألنا عبر واتساب</a>.</p>
+      </header>
+      <div class="faq-list">
+        <% c.faqs.forEach((f) => { %>
+        <details><summary><%= f.question %></summary><div class="faq-a"><p><%= f.answer %></p></div></details>
+        <% }) %>
+      </div>
+    </div>
+  </section>
+  <% } %>
+
+  <!-- ===== نموذج طلب المعاينة ===== -->
+  <section class="section request" id="request" aria-labelledby="request-title">
+    <div class="wrap req-grid">
+      <aside class="req-info">
+        <h2 id="request-title"><%= sec.formTitle %></h2>
+        <p><%= sec.formSubtitle %></p>
+        <ol class="req-next">
+          <li>نراجع طلبك ونتصل بك في الوقت الذي تختاره.</li>
+          <li>نحدد معك موعدًا لمعاينة الموقع وأخذ المقاسات.</li>
+          <li>تستلم بعد المعاينة نطاق عمل وعرض سعر مكتوبًا.</li>
+        </ol>
+        <div class="req-alt">
+          <p>تفضّل المحادثة مباشرة؟</p>
+          <a class="btn btn-wa" href="<%= wa %>" target="_blank" rel="noopener" data-wa="form_side"><%- icon('whatsapp') %> راسلنا على واتساب</a>
+          <% if (co.workingHours) { %><p class="muted"><%- icon('clock') %> <%= co.workingHours %></p><% } %>
+        </div>
+      </aside>
+
+      <div class="req-card">
+        <form class="lead-form" data-lead-form novalidate>
+          <div class="form-grid">
+            <div class="field">
+              <label for="f-name">الاسم <span class="req" aria-hidden="true">*</span></label>
+              <input id="f-name" name="name" type="text" autocomplete="name" required maxlength="80" aria-describedby="e-name">
+              <p class="err" id="e-name" data-err="name"></p>
+            </div>
+            <div class="field">
+              <label for="f-phone">رقم الجوال <span class="req" aria-hidden="true">*</span></label>
+              <input id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required maxlength="20" dir="ltr" placeholder="<%= market.example %>" aria-describedby="e-phone">
+              <p class="err" id="e-phone" data-err="phone"></p>
+            </div>
+            <div class="field">
+              <label for="f-city">المدينة أو المنطقة <span class="req" aria-hidden="true">*</span></label>
+              <input id="f-city" name="city" type="text" list="cities" autocomplete="address-level2" required maxlength="60" aria-describedby="e-city">
+              <datalist id="cities"><% (fm.cities || []).forEach((ct) => { %><option value="<%= ct %>"><% }) %></datalist>
+              <p class="err" id="e-city" data-err="city"></p>
+            </div>
+            <div class="field">
+              <label for="f-service">نوع الخدمة <span class="req" aria-hidden="true">*</span></label>
+              <select id="f-service" name="service" required aria-describedby="e-service">
+                <option value="">اختر الخدمة</option>
+                <% c.services.forEach((sv) => { %><option><%= sv.title %></option><% }) %>
+                <option>أخرى</option>
+              </select>
+              <p class="err" id="e-service" data-err="service"></p>
+            </div>
+            <div class="field">
+              <label for="f-ptype">نوع العقار <span class="req" aria-hidden="true">*</span></label>
+              <select id="f-ptype" name="property_type" required aria-describedby="e-property_type">
+                <option value="">اختر نوع العقار</option>
+                <% fm.propertyTypes.forEach((t) => { %><option><%= t %></option><% }) %>
+              </select>
+              <p class="err" id="e-property_type" data-err="property_type"></p>
+            </div>
+            <div class="field">
+              <label for="f-area">المساحة التقريبية <span class="opt">(اختياري)</span></label>
+              <div class="suffix-wrap"><input id="f-area" name="area" type="text" inputmode="numeric" maxlength="7" dir="ltr" aria-describedby="e-area"><span class="suffix">م²</span></div>
+              <p class="err" id="e-area" data-err="area"></p>
+            </div>
+            <% if (fm.budgets && fm.budgets.length) { %>
+            <div class="field">
+              <label for="f-budget">الميزانية التقديرية <span class="opt">(اختياري)</span></label>
+              <select id="f-budget" name="budget" aria-describedby="e-budget">
+                <option value="">اختر نطاقًا</option>
+                <% fm.budgets.forEach((b) => { %><option><%= b %></option><% }) %>
+              </select>
+              <p class="err" id="e-budget" data-err="budget"></p>
+            </div>
+            <% } %>
+            <fieldset class="field field-full">
+              <legend>الوقت المناسب للتواصل <span class="req" aria-hidden="true">*</span></legend>
+              <div class="chips-radio">
+                <% fm.contactTimes.forEach((t, i) => { %><label class="chip-r"><input type="radio" name="contact_time" value="<%= t %>" <%= i === 0 ? 'required' : '' %>><span><%= t %></span></label><% }) %>
+              </div>
+              <p class="err" data-err="contact_time"></p>
+            </fieldset>
+            <div class="field field-full">
+              <label for="f-details">تفاصيل إضافية <span class="opt">(اختياري)</span></label>
+              <textarea id="f-details" name="details" rows="3" maxlength="1000" placeholder="مثال: شقة جديدة على المحارة، نرغب في تشطيب كامل مع مطبخ."></textarea>
+              <p class="err" data-err="details"></p>
+            </div>
+            <div class="hp" aria-hidden="true">
+              <label for="f-website">اترك هذا الحقل فارغًا</label>
+              <input id="f-website" name="company_website" type="text" tabindex="-1" autocomplete="off">
+            </div>
+            <% if (s.tracking.turnstileSiteKey) { %><div class="field-full"><div class="cf-turnstile" data-sitekey="<%= s.tracking.turnstileSiteKey %>" data-language="ar"></div></div><% } %>
+            <% if (fm.privacyRequired) { %>
+            <div class="field field-full">
+              <label class="check"><input type="checkbox" name="consent" required aria-describedby="e-consent"><span>أوافق على <a href="/privacy" target="_blank">سياسة الخصوصية</a> واستخدام بياناتي للتواصل بخصوص طلبي.</span></label>
+              <p class="err" id="e-consent" data-err="consent"></p>
+            </div>
+            <% } %>
+          </div>
+          <div class="form-foot">
+            <button type="submit" class="btn btn-primary btn-lg btn-submit" data-submit>
+              <span class="btn-label">أرسل طلب المعاينة</span><span class="spinner" aria-hidden="true"></span>
+            </button>
+            <p class="form-status" role="status" aria-live="polite" data-status></p>
+          </div>
+        </form>
+        <div class="lead-success" data-success hidden tabindex="-1">
+          <span class="ok-mark" aria-hidden="true"><%- icon('check') %></span>
+          <h3>تم استلام طلبك</h3>
+          <p data-success-msg><%= fm.successMessage %></p>
+          <p class="muted">رقم الطلب: <strong data-lead-id dir="ltr"></strong></p>
+          <a class="btn btn-wa" href="#" target="_blank" rel="noopener" data-wa="after_submit" data-wa-after><%- icon('whatsapp') %> تابع على واتساب (اختياري)</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CTA ختامي ===== -->
+  <section class="final-cta" aria-labelledby="cta-title">
+    <div class="wrap final-in">
+      <div>
+        <h2 id="cta-title"><%= sec.ctaTitle %></h2>
+        <p><%= sec.ctaSubtitle %></p>
+      </div>
+      <div class="final-actions">
+        <a class="btn btn-primary btn-lg" href="#request" data-cta="final">اطلب معاينة</a>
+        <a class="btn btn-ghost-light btn-lg" href="<%= wa %>" target="_blank" rel="noopener" data-wa="final"><%- icon('whatsapp') %> واتساب</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<%- include('partials/footer', { s, year }) %>
+
+<!-- شريط الموبايل الثابت -->
+<div class="mobile-bar" data-mobile-bar>
+  <a class="btn btn-primary" href="#request" data-cta="mobile_bar">اطلب معاينة</a>
+  <a class="btn btn-wa" href="<%= wa %>" target="_blank" rel="noopener" data-wa="mobile_bar"><%- icon('whatsapp') %> واتساب</a>
+</div>
+<a class="wa-float" href="<%= wa %>" target="_blank" rel="noopener" data-wa="floating" aria-label="تواصل عبر واتساب"><%- icon('whatsapp') %></a>
+
+<!-- نافذة تفاصيل المشروع -->
+<dialog class="modal proj-modal" data-proj-modal aria-labelledby="pm-title">
+  <div class="modal-in">
+    <button type="button" class="icon-btn modal-close" data-close aria-label="إغلاق"><%- icon('close') %></button>
+    <div class="pm-media">
+      <div class="ba" data-ba hidden>
+        <div class="ba-stage">
+          <img class="ba-after" alt="" data-ba-after>
+          <div class="ba-before-wrap" data-ba-clip><img class="ba-before" alt="" data-ba-before></div>
+          <div class="ba-handle" data-ba-handle aria-hidden="true"><span></span></div>
+          <span class="ba-label ba-label-before">قبل</span><span class="ba-label ba-label-after">بعد</span>
+        </div>
+        <label class="sr-only" for="ba-range">مقارنة قبل وبعد</label>
+        <input id="ba-range" class="ba-range" type="range" min="0" max="100" value="50" data-ba-range>
+      </div>
+      <div class="pm-main" data-pm-main><img alt="" data-pm-img></div>
+      <div class="pm-thumbs" data-pm-thumbs></div>
+    </div>
+    <div class="pm-info">
+      <p class="pm-cat" data-pm-cat></p>
+      <h2 id="pm-title" data-pm-title></h2>
+      <dl class="pm-facts" data-pm-facts></dl>
+      <p data-pm-desc></p>
+      <p class="note-demo" data-pm-demo hidden>هذا مشروع توضيحي تجريبي وليس عملًا فعليًا للشركة.</p>
+      <a class="btn btn-primary" href="#request" data-similar data-cta="project_modal">أريد مشروعًا مشابهًا</a>
+    </div>
+  </div>
+</dialog>
+
+<!-- نافذة إضافة رأي -->
+<dialog class="modal review-modal" data-review-modal aria-labelledby="rv-title">
+  <div class="modal-in modal-narrow">
+    <button type="button" class="icon-btn modal-close" data-close aria-label="إغلاق"><%- icon('close') %></button>
+    <h2 id="rv-title">شاركنا رأيك</h2>
+    <p class="muted">يُراجَع رأيك قبل نشره، ولن يظهر إلا بموافقتك.</p>
+    <form data-review-form novalidate>
+      <div class="field"><label for="r-name">الاسم كما تحب أن يظهر *</label><input id="r-name" name="name" maxlength="60" required><p class="err" data-err="name"></p></div>
+      <div class="field"><label for="r-city">المدينة <span class="opt">(اختياري)</span></label><input id="r-city" name="city" maxlength="60"></div>
+      <fieldset class="field"><legend>التقييم <span class="opt">(اختياري)</span></legend>
+        <div class="rate-input"><% for (let k = 5; k >= 1; k--) { %><input type="radio" name="rating" id="rt<%= k %>" value="<%= k %>"><label for="rt<%= k %>" aria-label="<%= k %> من 5"><%- icon('star') %></label><% } %></div>
+      </fieldset>
+      <div class="field"><label for="r-text">رأيك في التجربة *</label><textarea id="r-text" name="text" rows="4" maxlength="600" required></textarea><p class="err" data-err="text"></p></div>
+      <div class="hp" aria-hidden="true"><input name="company_website" tabindex="-1" autocomplete="off"></div>
+      <label class="check"><input type="checkbox" name="consent" required><span>أوافق على نشر اسمي ورأيي في الموقع.</span></label>
+      <p class="err" data-err="consent"></p>
+      <button class="btn btn-primary btn-block btn-submit" type="submit" data-submit><span class="btn-label">أرسل الرأي</span><span class="spinner" aria-hidden="true"></span></button>
+      <p class="form-status" role="status" aria-live="polite" data-status></p>
+    </form>
+  </div>
+</dialog>
+
+<script type="application/json" id="projects-data"><%- projectsJson %></script>
+<script src="/js/site.js" defer></script>
+</body>
+</html>
